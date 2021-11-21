@@ -7,21 +7,18 @@
 #include "List.h"
 
 struct node {
-    void* value;
+    void* data;
     struct node* next;
 };
 
 struct student {
     int id;
-    char* name;
+    float weight;
 };
 
 typedef struct node node_t;
 typedef struct student student_t;
 
-void* create(){
-
-};
 enum ListReturnCode destroy(){
 
 };
@@ -55,40 +52,46 @@ void* getItemIndex(node_t* head,uint16_t index){
         current++;
         temp = temp->next;
     }
-    return temp->value;
+    return temp->data;
 };
 
-void printList(node_t* head){
+void printList(node_t* head, void (*fptr)(void *)){
     node_t* temp = head;
 
     while(temp!=NULL){
-        printf("-%.2f",*(float *)temp->value);
+        (*fptr)(temp->data);
         temp = temp->next;
     }
     printf("\n");
 }
 
-node_t* createNode(void* value,size_t data_size){
+void printStudent(void* student)
+{
+    student_t * printed = student;
+    printf("\n{\nStudent Id: %d\nWeight: %.1f\n}", printed->id,printed->weight);
+}
+node_t* createNode(void* data){
     node_t* result = (node_t *)calloc(1,sizeof(node_t));
-//    result->value = malloc(data_size);
-    result->value = value;
-//    for(int i=0; i <data_size; i++){
-//        *(char *)(result->value + i) = *(char *)(value + i);
-//    }
+    result->data = data;
     result->next = NULL;
     return result;
 };
 
-node_t* insertAtHead(node_t** head, void* value){
-    unsigned int_size = sizeof(float);
-    node_t* temp = createNode(value,int_size);
+student_t * createStudent(int id, float weight){
+    student_t * result = (node_t *)calloc(1,sizeof(student_t));
+    result->id = id;
+    result->weight = weight;
+    return result;
+};
+
+node_t* insertAtHead(node_t** head, void* data){
+    node_t* temp = createNode(data);
     temp->next = *head;
     *head = temp;
     return temp;
 };
-enum ListReturnCode insertAtEnd(node_t* head, void* value){
-    unsigned int_size = sizeof(float);
-    node_t* added = createNode(value,int_size);
+enum ListReturnCode insertAtEnd(node_t* head, void* data){
+    node_t* added = createNode(data);
     node_t* temp = head;
 
     while(temp->next!=NULL){
@@ -104,22 +107,23 @@ int main(){
 
 
 
-    float add = 10.1f;
+    student_t* add = createStudent(199,20);
 
-    insertAtHead(&head,&add);
-    insertAtHead(&head,&add);
-    insertAtHead(&head,&add);
+    insertAtHead(&head,createStudent(1,21));
+    insertAtHead(&head,createStudent(2,31));
+    insertAtHead(&head,createStudent(3,51));
 
-    insertAtEnd(head,&add);
-    insertAtEnd(head,&add);
-    insertAtEnd(head,&add);
+    insertAtEnd(head,add);
+    insertAtEnd(head,add);
+    insertAtEnd(head,add);
 
-    float at2 =  *(float *)getItemIndex(head, 2);
+    student_t* at2 =  getItemIndex(head, 2);
 
-    printList(head);
+    printList(head,printStudent);
+//
+//    printf("%d\n", noOfItems(head));
 
-    printf("%d\n", noOfItems(head));
-    printf("%f\n", at2);
+    printf("at index 2: %d\n", at2->id);
     return 0;
 }
 
