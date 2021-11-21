@@ -7,6 +7,14 @@
 #pragma once
 #include "stdint.h"
 
+
+struct node {
+    void* data;
+    struct node* next;
+};
+
+typedef struct node List;
+
 enum ListReturnCode{
     OK,
     EMPTY,
@@ -15,12 +23,12 @@ enum ListReturnCode{
     ERROR
 };
 
-void* create();
-enum ListReturnCode destroy();
-enum ListReturnCode addItem(void* item);
-enum ListReturnCode getItemObj(void** item, uint16_t index);
-enum ListReturnCode removeItem(void* item);
-uint16_t noOfItems();
-void* getItem(uint16_t index);
+List* create();
+enum ListReturnCode destroy(List** list);
+enum ListReturnCode addItem(List* list,void* item);
+//enum ListReturnCode getItemObj(void** item,List* list, uint16_t index);
+enum ListReturnCode removeItem(List** list,void* item);
+uint16_t noOfItems(List* list);
+void* getItem(List* list,uint16_t index);
 
 #endif //ASSIGNMENT_LIST_H

@@ -6,47 +6,84 @@
 #include <stdlib.h>
 #include "List.h"
 
-struct node {
-    void* data;
-    struct node* next;
-};
 
 struct student {
     int id;
     float weight;
 };
 
-typedef struct node node_t;
 typedef struct student student_t;
 
-enum ListReturnCode destroy(){
 
+//enum ListReturnCode getItemObj(void** item,List* list, uint16_t index){
+//
+//};
+
+List* create(){
+    List* result = (List *)calloc(1,sizeof(List));
+    result->data = 0;
+    result->next = 0;
+    return result;
 };
-enum ListReturnCode addItem(void* item){
-//    void* temp = malloc(sizeof (item));
 
+enum ListReturnCode removeItem(List** list,void* item){
+    if(list==0){
+        return EMPTY;
+    }
+    if(item==0){
+        return ERROR;
+    }
+    int deleted = 0;
+    List* temp = *list;
+    student_t * searched = item;
+    student_t * current = temp->data;
 
+    if(temp->next==0){
+        free(*list);
+        free(item);
+        temp->next=0;
+        *list = 0;
+        return OK;
+    }
+    while(searched->id==current->id){
+        List* old = *list;
+        *list = temp->next;
+        temp=*list;
+        current = temp->data;
+        deleted++;
+        free(old);
+    }
+    while(temp->next!= 0){
+        current = temp->next->data;
+        if(current->id==searched->id){
+            List * toBeDeleted = temp->next;
+            temp->next = temp->next->next;
+            free(toBeDeleted);
+            deleted++;
+        }else{
+            temp = temp->next;
+        }
+    }
+    if(deleted>0) return OK;
+    else return NOT_FOUND;
 };
-enum ListReturnCode getItemObj(void** item, uint16_t index){
-
-};
-enum ListReturnCode removeItem(void* item){
-
-};
-uint16_t noOfItems(node_t* head){
+uint16_t noOfItems(List* list){
+    if(list ==0){
+        return 0;
+    }
     int size = 1;
-    node_t* temp = head;
+    List* temp = list;
 
-    while(temp->next!=NULL){
+    while(temp->next!=0){
         temp = temp->next;
         size++;
     }
     return size;
 
 };
-void* getItemIndex(node_t* head,uint16_t index){
+void* getItem(List* list,uint16_t index){
     int current = 0;
-    node_t* temp = head;
+    List* temp = list;
 
     while(current<index){
         current++;
@@ -55,75 +92,102 @@ void* getItemIndex(node_t* head,uint16_t index){
     return temp->data;
 };
 
-void printList(node_t* head, void (*fptr)(void *)){
-    node_t* temp = head;
+void printList(List* list, void (*fptr)(void *)){
+    List* temp = list;
+    if(list==0){
+        printf("List empty");
+        return;
+    }
 
-    while(temp!=NULL){
+    while(temp!=0){
         (*fptr)(temp->data);
         temp = temp->next;
     }
     printf("\n");
 }
 
+
+enum ListReturnCode destroy(List** list){
+    int size = noOfItems(*list);
+    while(size>0){
+        int i = size -1;
+        void* item = getItem(*list,i);
+        removeItem(list,item);
+        size = noOfItems(*list);
+    }
+    return OK;
+};
 void printStudent(void* student)
 {
     student_t * printed = student;
-    printf("\n{\nStudent Id: %d\nWeight: %.1f\n}", printed->id,printed->weight);
+    printf("{\nStudent Id: %d\nWeight: %.1f\n}\n", printed->id,printed->weight);
 }
-node_t* createNode(void* data){
-    node_t* result = (node_t *)calloc(1,sizeof(node_t));
+List* createNode(void* data){
+    List* result = (List *)calloc(1,sizeof(List));
     result->data = data;
-    result->next = NULL;
+    result->next = 0;
     return result;
 };
 
 student_t * createStudent(int id, float weight){
-    student_t * result = (node_t *)calloc(1,sizeof(student_t));
+    student_t * result = (student_t *)calloc(1,sizeof(student_t));
     result->id = id;
     result->weight = weight;
     return result;
 };
 
-node_t* insertAtHead(node_t** head, void* data){
-    node_t* temp = createNode(data);
-    temp->next = *head;
-    *head = temp;
+List* insertAtStart(List** list, void* data){
+    List* temp = createNode(data);
+    temp->next = *list;
+    *list = temp;
     return temp;
 };
-enum ListReturnCode insertAtEnd(node_t* head, void* data){
-    node_t* added = createNode(data);
-    node_t* temp = head;
+enum ListReturnCode addItem(List* list, void* data){
+    List* added = createNode(data);
+    List* temp = list;
 
-    while(temp->next!=NULL){
-        temp = temp->next;
+    if(list->data==0){
+        list->data = data;
+    }else{
+        while(temp->next!=0){
+            temp = temp->next;
+        }
+        temp->next = added;
+        return OK;
     }
-    temp->next = added;
-    return OK;
 };
 
 
 int main(){
-    node_t *head = NULL;
+    List *list = create();
+
+    addItem(list,createStudent(1,21));
+    addItem(list,createStudent(2,31));
+    addItem(list,createStudent(3,51));
+
+    addItem(list,createStudent(4,71));
+    addItem(list, createStudent(5,1));
+    addItem(list, createStudent(6,12));
+
+    printList(list,printStudent);
 
 
+    printf("Size after insert: %d\n", noOfItems(list));
 
-    student_t* add = createStudent(199,20);
+    printf("Deleted: %d\n",removeItem(&list, createStudent(6,1)));
 
-    insertAtHead(&head,createStudent(1,21));
-    insertAtHead(&head,createStudent(2,31));
-    insertAtHead(&head,createStudent(3,51));
+    printf("Size after delete 1: %d\n", noOfItems(list));
+    printf("Deleted: %d\n",removeItem(&list, createStudent(1,1)));
 
-    insertAtEnd(head,add);
-    insertAtEnd(head,add);
-    insertAtEnd(head,add);
 
-    student_t* at2 =  getItemIndex(head, 2);
+    printf("Size after delete 2: %d\n", noOfItems(list));
 
-    printList(head,printStudent);
-//
-//    printf("%d\n", noOfItems(head));
+    destroy(&list);
 
-    printf("at index 2: %d\n", at2->id);
+    printf("Size after destroy: %d\n", noOfItems(list));
+
+    printList(list,printStudent);
+
     return 0;
 }
 
