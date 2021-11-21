@@ -30,5 +30,6 @@ enum ListReturnCode addItem(List* list,void* item);
 enum ListReturnCode removeItem(List** list,void* item);
 uint16_t noOfItems(List* list);
 void* getItem(List* list,uint16_t index);
+void printList(List* list, void (*fptr)(void *));
 
 #endif //ASSIGNMENT_LIST_H

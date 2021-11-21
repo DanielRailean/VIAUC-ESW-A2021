@@ -6,14 +6,11 @@
 #include <stdlib.h>
 #include "List.h"
 
-
-struct student {
+struct data {
     int id;
-    float weight;
 };
 
-typedef struct student student_t;
-
+typedef struct data data_t;
 
 //enum ListReturnCode getItemObj(void** item,List* list, uint16_t index){
 //
@@ -35,8 +32,8 @@ enum ListReturnCode removeItem(List** list,void* item){
     }
     int deleted = 0;
     List* temp = *list;
-    student_t * searched = item;
-    student_t * current = temp->data;
+    data_t * searched = item;
+    data_t * current = temp->data;
 
     if(temp->next==0){
         free(*list);
@@ -108,20 +105,18 @@ void printList(List* list, void (*fptr)(void *)){
 
 
 enum ListReturnCode destroy(List** list){
-    int size = noOfItems(*list);
+    List* toFree = *list;
+    *list = 0;
+    int size = noOfItems(toFree);
     while(size>0){
         int i = size -1;
-        void* item = getItem(*list,i);
-        removeItem(list,item);
+        void* item = getItem(toFree,i);
+        removeItem(&toFree,item);
         size = noOfItems(*list);
     }
     return OK;
 };
-void printStudent(void* student)
-{
-    student_t * printed = student;
-    printf("{\nStudent Id: %d\nWeight: %.1f\n}\n", printed->id,printed->weight);
-}
+
 List* createNode(void* data){
     List* result = (List *)calloc(1,sizeof(List));
     result->data = data;
@@ -129,12 +124,6 @@ List* createNode(void* data){
     return result;
 };
 
-student_t * createStudent(int id, float weight){
-    student_t * result = (student_t *)calloc(1,sizeof(student_t));
-    result->id = id;
-    result->weight = weight;
-    return result;
-};
 
 List* insertAtStart(List** list, void* data){
     List* temp = createNode(data);
@@ -157,37 +146,4 @@ enum ListReturnCode addItem(List* list, void* data){
     }
 };
 
-
-int main(){
-    List *list = create();
-
-    addItem(list,createStudent(1,21));
-    addItem(list,createStudent(2,31));
-    addItem(list,createStudent(3,51));
-
-    addItem(list,createStudent(4,71));
-    addItem(list, createStudent(5,1));
-    addItem(list, createStudent(6,12));
-
-    printList(list,printStudent);
-
-
-    printf("Size after insert: %d\n", noOfItems(list));
-
-    printf("Deleted: %d\n",removeItem(&list, createStudent(6,1)));
-
-    printf("Size after delete 1: %d\n", noOfItems(list));
-    printf("Deleted: %d\n",removeItem(&list, createStudent(1,1)));
-
-
-    printf("Size after delete 2: %d\n", noOfItems(list));
-
-    destroy(&list);
-
-    printf("Size after destroy: %d\n", noOfItems(list));
-
-    printList(list,printStudent);
-
-    return 0;
-}
 
