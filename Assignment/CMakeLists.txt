@@ -3,4 +3,4 @@ project(Assignment C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Assignment main.c)
+add_executable(Assignment main.c List.c List.h)
