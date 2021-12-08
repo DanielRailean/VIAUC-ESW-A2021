@@ -1,21 +1,10 @@
-//
-// Created by dd on 21/11/2021.
-//
+#pragma once
 
-#ifndef ASSIGNMENT_STUDENT_H
-#define ASSIGNMENT_STUDENT_H
-#pragma  once
+#include <stdlib.h>
+#include <stdint.h>
 
-struct student {
-    int id;
-    char* firstName;
-    char* lastName;
-    char* nationality;
-    int studentId;
-};
-
-typedef struct student Student;
-
-Student* createStudent(char* firstName,char* lastName, int studentId,char* nationality);
-void printInfo(void* student);
-#endif //ASSIGNMENT_STUDENT_H
+typedef struct Student *student_t;
+student_t *student_create(char *firstName, char *lastName, uint16_t studentId, char *nationality);
+void student_printInfo(student_t self);
+uint16_t student_getId(student_t self);
+char *student_getLastName(student_t self);

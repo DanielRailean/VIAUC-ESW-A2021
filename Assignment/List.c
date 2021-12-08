@@ -1,149 +1,229 @@
-//
-// Created by dd on 21/11/2021.
-//
-
-#include <stdio.h>
 #include <stdlib.h>
 #include "List.h"
 
-struct data {
-    int id;
-};
+typedef struct Node
+{
+    void *value;
+    struct Node *next;
+} Node;
 
-typedef struct data data_t;
+typedef struct List
+{
+    Node *head;
+} List;
 
-//enum ListReturnCode getItemObj(void** item,List* list, uint16_t index){
-//
-//};
-
-List* create(){
-    List* result = (List *)calloc(1,sizeof(List));
-    result->data = 0;
-    result->next = 0;
-    return result;
-};
-
-enum ListReturnCode removeItem(List** list,void* item){
-    if(list==0){
-        return EMPTY;
+static Node *list_findTail(Node *head)
+{
+    if (!head->next)
+    {
+        return head;
     }
-    if(item==0){
-        return ERROR;
+    else
+    {
+        return list_findTail(head->next);
     }
-    int deleted = 0;
-    List* temp = *list;
-    data_t * searched = item;
-    data_t * current = temp->data;
-
-    if(temp->next==0){
-        free(*list);
-        free(item);
-        temp->next=0;
-        *list = 0;
-        return OK;
-    }
-    while(searched->id==current->id){
-        List* old = *list;
-        *list = temp->next;
-        temp=*list;
-        current = temp->data;
-        deleted++;
-        free(old);
-    }
-    while(temp->next!= 0){
-        current = temp->next->data;
-        if(current->id==searched->id){
-            List * toBeDeleted = temp->next;
-            temp->next = temp->next->next;
-            free(toBeDeleted);
-            deleted++;
-        }else{
-            temp = temp->next;
-        }
-    }
-    if(deleted>0) return OK;
-    else return NOT_FOUND;
-};
-uint16_t noOfItems(List* list){
-    if(list ==0){
-        return 0;
-    }
-    int size = 1;
-    List* temp = list;
-
-    while(temp->next!=0){
-        temp = temp->next;
-        size++;
-    }
-    return size;
-
-};
-void* getItem(List* list,uint16_t index){
-    int current = 0;
-    List* temp = list;
-
-    while(current<index){
-        current++;
-        temp = temp->next;
-    }
-    return temp->data;
-};
-
-void printList(List* list, void (*fptr)(void *)){
-    List* temp = list;
-    if(list==0){
-        printf("List empty");
-        return;
-    }
-
-    while(temp!=0){
-        (*fptr)(temp->data);
-        temp = temp->next;
-    }
-    printf("\n");
 }
 
-
-enum ListReturnCode destroy(List** list){
-    List* toFree = *list;
-    *list = 0;
-    int size = noOfItems(toFree);
-    while(size>0){
-        int i = size -1;
-        void* item = getItem(toFree,i);
-        removeItem(&toFree,item);
-        size = noOfItems(*list);
+static uint16_t list_countToTail(Node *head)
+{
+    if (head->next == NULL)
+    {
+        return 1;
     }
-    return OK;
-};
+    else
+    {
+        return list_countToTail(head->next) + 1;
+    }
+}
 
-List* createNode(void* data){
-    List* result = (List *)calloc(1,sizeof(List));
-    result->data = data;
-    result->next = 0;
-    return result;
-};
+static Node *list_findNodeByIndex(Node *head, uint16_t index)
+{
+    if (index != 0 && head->next)
+    {
+        return list_findNodeByIndex(head->next, index - 1);
+    }
+    else if (head)
+    {
+        return head;
+    }
+    else
+    {
+        return NULL;
+    }
+}
 
+static Node *list_findNodeByItem(Node *head, void **item)
+{
+    if (head->value == *item)
+    {
+        return head;
+    }
+    else if (head->value == item)
+    {
+        return head;
+    }
+    else if (!head->next)
+    {
+        return NULL;
+    }
+    else
+    {
+        return list_findNodeByItem(head->next, item);
+    }
+}
 
-List* insertAtStart(List** list, void* data){
-    List* temp = createNode(data);
-    temp->next = *list;
-    *list = temp;
-    return temp;
-};
-enum ListReturnCode addItem(List* list, void* data){
-    List* added = createNode(data);
-    List* temp = list;
+static Node *list_findParentNodeOfNode(Node *head, Node *childNode)
+{
+    if (head->next == childNode)
+    {
+        return head;
+    }
+    else if (!head->next)
+    {
+        return NULL;
+    }
+    else
+    {
+        return list_findParentNodeOfNode(head->next, childNode);
+    }
+}
 
-    if(list->data==0){
-        list->data = data;
-    }else{
-        while(temp->next!=0){
-            temp = temp->next;
-        }
-        temp->next = added;
+static list_listReturnCode list_deleteNodesCascade(Node *head)
+{
+    if (!head)
+    {
         return OK;
     }
-};
+    else
+    {
+        if (head->next)
+        {
+            Node *next = head->next;
+            free(head->value);
+            free(head);
+            return list_deleteNodesCascade(next);
+        }
+        else
+        {
+            free(head->value);
+            free(head);
+            return OK;
+        }
+    }
+}
 
+list_t list_create()
+{
+    list_t new_list = calloc(sizeof(List), 1);
+    if (NULL == new_list)
+    {
+        return NULL;
+    }
+    return new_list;
+}
 
+list_listReturnCode list_destroy(list_t self)
+{
+    if (NULL != self)
+    {
+        if (list_deleteNodesCascade(self->head) == 0)
+        {
+            free(self);
+            return OK;
+        }
+        else
+        {
+            free(self);
+            return OK;
+        }
+    }
+    else
+    {
+        return NULLL;
+    }
+}
+
+list_listReturnCode list_addItem(list_t self, void *item)
+{
+    if (NULL != self)
+    {
+        Node *added = calloc(sizeof(Node), 1);
+        if (NULL == added)
+        {
+            return ERROR;
+        }
+        added->value = item;
+        if (!self->head)
+        {
+            self->head = added;
+        }
+        else
+        {
+            Node *tail = list_findTail(self->head);
+            tail->next = added;
+        }
+        return OK;
+    }
+    else
+    {
+        return NULLL;
+    }
+}
+
+list_listReturnCode list_getItem(list_t self, void **item, uint16_t index)
+{
+    if (NULL != self)
+    {
+        Node *returned = list_findNodeByIndex(self->head, index);
+        if (!returned)
+        {
+            return NOT_FOUND;
+        }
+        *item = returned->value;
+        return OK;
+    }
+    else
+    {
+        return NULLL;
+    }
+}
+
+list_listReturnCode list_removeItem(list_t self, void *item)
+{
+    if (NULL != self)
+    {
+        Node *deleted = list_findNodeByItem(self->head, item);
+        if (!deleted)
+        {
+            return NOT_FOUND;
+        }
+        Node *nextTemp = deleted->next;
+        if (self->head == deleted)
+        {
+            self->head = nextTemp;
+        }
+        else
+        {
+            Node *parentNode = list_findParentNodeOfNode(self->head, deleted);
+            parentNode->next = nextTemp;
+        }
+        free(deleted);
+        return OK;
+    }
+    else
+    {
+        return NULLL;
+    }
+}
+
+uint16_t list_noOfItems(list_t self)
+{
+    if (!self->head)
+    {
+        return 0;
+    }
+    else
+    {
+        return list_countToTail(self->head);
+    }
+}

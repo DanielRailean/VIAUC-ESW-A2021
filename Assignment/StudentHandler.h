@@ -1,20 +1,11 @@
-//
-// Created by dd on 21/11/2021.
-//
+#pragma once
 
-#ifndef ASSIGNMENT_STUDENTHANDLER_H
-#define ASSIGNMENT_STUDENTHANDLER_H
-
-#pragma  once
-
-#include <stdio.h>
-#include <stdlib.h>
-#include "List.h"
 #include "Student.h"
 
-
-void printAllStudentsInfo(List* students);
-Student* searchStudentById(List* studentList, int id);
-Student* searchStudentByLastName(List* studentList, char* lastName);
-
-#endif //ASSIGNMENT_STUDENTHANDLER_H
+typedef struct StudentHandler *studentHandler_t;
+studentHandler_t studentHandler_create();
+void studentHandler_printStudentInfo(studentHandler_t self, student_t *student);
+void studentHandler_printAllStudentsInfo(studentHandler_t self);
+student_t *studentHandler_searchStudentById(studentHandler_t self, uint16_t studentId);
+student_t *studentHandler_searchStudentByLastName(studentHandler_t self, char *lastName);
+void studentHandler_addStudent(studentHandler_t self, student_t *student);
